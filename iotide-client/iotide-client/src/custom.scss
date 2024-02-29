@@ -1,0 +1,22 @@
+/* import bootstrap to set changes */
+
+$theme-colors: (
+  "primary": #050f1e,
+  "secondary": #e63b60,
+);
+
+$font-sizes: (
+  1: 5rem,
+  2: 4.5rem,
+  3: 4rem,
+  4: 3.5rem,
+  5: 1rem,
+  6: 0.7rem,
+);
+
+$border-colors: (
+  "primary": #050f1e,
+  "secondary": #e63b60,
+);
+
+@import "bootstrap/scss/bootstrap";

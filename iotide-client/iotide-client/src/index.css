@@ -1,0 +1,88 @@
+html {
+  box-sizing: border-box;
+  font-size: 16px;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+#root {
+  padding: 0;
+}
+body {
+  overflow: hidden;
+}
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ol,
+ul {
+  margin: 0;
+  padding: 0;
+  font-weight: normal;
+}
+
+ol,
+ul {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.container-bg {
+  background-image: url("https://img.freepik.com/free-photo/cloud-technology-with-futuristic-hologram-smartwatch_53876-124625.jpg?w=900&t=st=1708005033~exp=1708005633~hmac=fecb2e879c75bb60cc42340a759d9a5ed633864bc3d402e0e0b9fb80cf5e5e9f");
+  background-color: #cccccc;
+  background-size: cover;
+}
+
+.containerInner-bg {
+  background: rgb(5, 15, 30);
+  background: linear-gradient(
+    80deg,
+    rgba(230, 59, 96, 0.95) 20%,
+    rgba(5, 15, 30, 0.95) 60%
+  );
+}
+
+.bg-blue {
+  background-color: #050f1e;
+}
+
+.form-control {
+  height: 8%;
+}
+
+.form-control::placeholder {
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.glassy-border {
+  background: rgba(230, 59, 96, 0.2);
+  backdrop-filter: blur(0);
+  border: 1px solid rgba(230, 59, 96, 0.2);
+  border-width: thin;
+}
+
+/* Optional: Add content inside the glassy border */
+.glassy-border::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border: 1px solid rgba(230, 59, 96, 0.2);
+  z-index: -1; /* Move the pseudo-element behind the main content */
+}
