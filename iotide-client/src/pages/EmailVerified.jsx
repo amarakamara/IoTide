@@ -5,7 +5,8 @@ import { Container, Button } from "react-bootstrap";
 const url = "http://localhost:3001";
 
 export default function EmailVerified() {
-  const { token } = useParams();
+  const { token, role } = useParams();
+
   const [verified, setVerified] = useState(false);
 
   useEffect(() => {
@@ -71,7 +72,7 @@ export default function EmailVerified() {
                 expired or invalid!
               </p>
               <Button>
-                <NavLink to="/admin/login">Login</NavLink>
+                <NavLink to={`/${role}/login`}>Login</NavLink>
               </Button>
             </>
           )}

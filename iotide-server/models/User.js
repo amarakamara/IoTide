@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   isVerified: { type: Boolean, default: false },
   verificationToken: String,
+  resetPasswordToken: String,
   role: { type: String, required: true, default: "user" },
   blogs: [
     {

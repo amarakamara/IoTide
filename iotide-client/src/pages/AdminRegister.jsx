@@ -8,7 +8,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
 import validator from "validator";
 
-function Register() {
+function AdminRegister() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -40,6 +40,7 @@ function Register() {
       lastName: formData.lName,
       username: formData.username,
       password: formData.password,
+      role: "admin",
     };
 
     fetch("http://localhost:3001/register", {
@@ -75,10 +76,11 @@ function Register() {
           submit={handleSubmit}
           handleChange={handleChange}
           type="register"
+          link="/admin/login"
         />
       </Container>
     </Container>
   );
 }
 
-export default Register;
+export default AdminRegister;

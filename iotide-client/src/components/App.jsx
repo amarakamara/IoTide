@@ -8,13 +8,13 @@ function App() {
     <>
       <h2>Home</h2>
       <Button variant="primary">
-        <NavLink className="text-white" to="/admin/login">
-          Admin Login
+        <NavLink className="text-white" to="/user/login">
+          User Login
         </NavLink>
       </Button>
       <Button variant="primary">
-        <NavLink className="text-white" to="/admin/register">
-          Admin Registration
+        <NavLink className="text-white" to="/user/register">
+          User Registration
         </NavLink>
       </Button>
     </>

@@ -13,6 +13,7 @@ const nodemailer = require("nodemailer");
 const passport = require("./auth");
 
 const sendEmail = require(`./utils/sendEmail`);
+const validatePassword = require("./utils/validatePassword");
 
 const port = process.env.PORT || 3001;
 
@@ -61,19 +62,14 @@ passport.use(User.createStrategy());
 
 //jwt secret
 const JWTsecret = process.env.JWT_SECRET;
+const RefreshSecret = process.env.REFRESH_SECRET;
 
-//home
-
-app.get("/", (req, res) => {
-  res.send(`Welcome to the IoTide!`);
-  console.log("I am here");
-});
 //Register
 app.post("/register", async (req, res) => {
   try {
-    const { firstName, lastName, username, password } = req.body;
+    const { firstName, lastName, username, role } = req.body;
 
-    const role = "admin";
+    let password = req.body.password;
 
     if (!username || !password || !firstName || !role) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -89,18 +85,15 @@ app.post("/register", async (req, res) => {
       console.log("user exists");
     }
 
-    const passwordRegex =
-      /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
-    if (!password.match(passwordRegex)) {
-      return res.status(400).json({
-        success: false,
-        message: "Password must meet the required criteria!",
-      });
-      console.log("bad password");
+    try {
+      await validatePassword(password);
+    } catch (error) {
+      console.error(error);
+      res.status(422).json({ error: `Invalid Password: ${error}` });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    password = await bcrypt.hash(password, 10);
+
     const newUser = { firstName, lastName, username, password, role };
 
     const user = new User(newUser);
@@ -121,7 +114,7 @@ app.post("/register", async (req, res) => {
       to: username,
       subject: "Please verify your IoTide account.",
       text: `Hi ${firstName},
-      Click the following link to verify your email: http://localhost:3000/emailverified/${token}`,
+      Click the following link to verify your email: http://localhost:3000/${role}/emailverified/${token}`,
     };
 
     try {
@@ -130,13 +123,12 @@ app.post("/register", async (req, res) => {
         .status(200)
         .json({ message: "User registered. Verification email sent." });
     } catch (error) {
-      console.error("Error sending email:", error);
+      console.error(error);
       return res.status(500).json({ error: "Server Error" });
     }
   } catch (error) {
-    console.error("Error during registration:", error);
+    console.error(error);
     return res.status(500).json({ error: "Server Error" });
-    console.log("Internal server error");
   }
 });
 
@@ -145,33 +137,26 @@ app.post("/register", async (req, res) => {
 app.get("/verify/:token", async (req, res) => {
   const token = req.params.token;
 
-  console.log("This is the token:", token);
-
   try {
     const user = await User.findOne({ verificationToken: token });
 
     if (!user) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid or expired token" });
+      return res.status(401).json({ error: "Invalid or expired token" });
     }
 
     // Check if the token is expired
     const decoded = jwt.verify(token, JWTsecret);
+
     if (Date.now() >= decoded.exp * 1000) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Token has expired" });
+      return res.status(401).json({ error: "Token has expired" });
     }
     user.isVerified = true;
-    console.log("isVerified is set");
     user.verificationToken = undefined;
-    console.log("verificationSet");
     await user.save();
 
     res
       .status(200)
-      .json({ success: true, message: "User verified successfully!" });
+      .json({ sucess: true, message: "User verified successfully!" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Internal server error" });
@@ -184,6 +169,7 @@ app.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username: username });
+
     if (!user) {
       return res.status(401).json({ error: "Invalid username or password" });
     }
@@ -193,20 +179,126 @@ app.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid username or password" });
     }
 
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       { id: user._id, isAdmin: user.role === "admin" },
       JWTsecret,
       { expiresIn: "1d" }
     );
 
+    const refreshToken = jwt.sign(
+      { id: user._id, username: user.username },
+      RefreshSecret,
+      { expiresIn: "7d" }
+    );
+
     res.status(200).json({
       message: `Logged in successfully`,
-      token,
-      user_id: user._id,
+      accessToken,
+      refreshToken,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.username,
+      userId: user._id,
     });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ error: "Server Error" });
+  }
+});
+
+//forgot password
+
+app.post("/forgotpassword", async (req, res) => {
+  const { username } = req.body;
+
+  try {
+    const user = await User.findOne({ username: username });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: "No user found with that username!" });
+    }
+
+    const token = jwt.sign({ username: username }, JWTsecret, {
+      expiresIn: "10m",
+    });
+
+    user.resetPasswordToken = token;
+
+    await user.save();
+
+    const mailOptions = {
+      user: process.env.MY_EMAIL,
+      password: process.env.MY_PASSWORD,
+      from: process.env.MY_EMAIL,
+      to: username,
+      subject: "Please verify your IoTide account.",
+      text: `Hi ${user.firstName},
+      Click the following link to reset your password: http://localhost:3000/passwordreset/${token}`,
+    };
+
+    try {
+      await sendEmail(mailOptions);
+      return res.status(200).json({ message: "password reset email sent!" });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Server Error" });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Server Error" });
+  }
+});
+
+//reset password
+
+app.put("/resetpassword/:token", async (req, res) => {
+  let { newPassword } = req.body;
+
+  const resetToken = req.params.token;
+
+  console.log(newPassword);
+
+  try {
+    const user = await User.findOne({ resetPasswordToken: resetToken });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid reset token" });
+    }
+    const decodedToken = jwt.verify(resetToken, JWTsecret);
+
+    if (Date.now() >= decodedToken.exp * 1000) {
+      return res.status(401).json({ error: "Token has expired" });
+    }
+
+    try {
+      await validatePassword(newPassword);
+    } catch (error) {
+      console.error(error);
+      res.status(422).json({
+        error: "Invalid Password Format!",
+      });
+    }
+
+    newPassword = await bcrypt.hash(newPassword, 10);
+    user.password = newPassword;
+    user.resetToken = undefined;
+
+    await user.save();
+
+    let role = user.role;
+
+    if (role === "superadmin") {
+      role = "admin";
+    }
+
+    return res
+      .status(200)
+      .json({ role: user.role, message: "Password reset successful" });
+  } catch (error) {
+    console.error(error);
+    return res.status(400).json({ error: "Invalid or expired reset token." });
   }
 });
 

@@ -5,7 +5,6 @@ import Form from "react-bootstrap/Form";
 import SubmitButton from "./SubmitButton";
 
 function Forms(props) {
-  const link = props.type === "login" ? "/admin/register" : "/admin/login";
   return (
     <div
       className="p-3 bg-primary rounded glassy-border"
@@ -28,7 +27,6 @@ function Forms(props) {
         >
           {props.type == "login" ? "Login" : "Registration"}
         </h2>
-
         {props.type === "login" ? (
           " "
         ) : (
@@ -78,15 +76,28 @@ function Forms(props) {
           />
         </Form.Group>
         <SubmitButton />
-        <h4 className="mb-2 text-white text-center mt-2 fs-6 inline">
-          {props.type === "login"
-            ? "Don\t have an account?"
-            : "Already have an account?"}
+        <div className="d-flex flex-row justify-content-center align-items-center mt-2">
+          <h4 className="text-white  fs-6">
+            {props.type === "login"
+              ? "Don't have an account?"
+              : "Already have an account?"}
 
-          <NavLink to={link} className="inline fs-6 m-1">
-            {props.type === "login" ? "Register" : "Login"}
-          </NavLink>
-        </h4>
+            <NavLink to={props.link} className=" m-1">
+              {props.type === "login" ? "Register" : "Login"}
+            </NavLink>
+          </h4>
+          <h4
+            className="text-white mx-1"
+            style={{ fontWeight: "light", fontSize: "0.89rem" }}
+          >
+            {props.type === "login" ? "|" : " "}
+          </h4>
+          <h4 className="text-white  fs-6">
+            <NavLink to={"/forgotpassword"} className=" m-1">
+              {props.type === "login" ? "Forgot password?" : " "}
+            </NavLink>
+          </h4>
+        </div>
       </Form>
     </div>
   );
