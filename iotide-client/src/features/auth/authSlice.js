@@ -3,6 +3,7 @@ import { createSlice, nanoid } from "@reduxjs/toolkit";
 const initialState = {
   userid: " ",
   token: " ",
+  resetToken: " ",
 };
 
 export const authSlice = createSlice({
@@ -23,9 +24,23 @@ export const authSlice = createSlice({
     clearToken: (state, action) => {
       state.token = " ";
     },
+    updateResetToken: (state, action) => {
+      const UserResetToken = { id: nanoid(), value: action.payload };
+      state.resetToken = userResetToken.value;
+    },
+    clearResetToken: (state, action) => {
+      state.resetToken = " ";
+    },
   },
 });
 
-export const { updateID, clearID, updateToken, clearToken } = authSlice.actions;
+export const {
+  updateID,
+  clearID,
+  updateToken,
+  clearToken,
+  updateResetToken,
+  clearResetToken,
+} = authSlice.actions;
 
 export default authSlice.reducer;

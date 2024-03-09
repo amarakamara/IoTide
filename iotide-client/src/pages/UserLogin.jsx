@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { updateID } from "../features/auth/authSlice";
-import { updateToken } from "../features/auth/authSlice";
+import {
+  updateID,
+  updateToken,
+  updateResetToken,
+} from "../features/auth/authSlice";
 import { setUserInfo } from "../features/user/userSlice";
 import Forms from "../components/Forms.jsx";
 import Container from "react-bootstrap/Container";
@@ -19,6 +22,7 @@ function UserLogin() {
 
   const [uid, setUid] = useState(" ");
   const [token, setToken] = useState(" ");
+  const [resetToken, setResetToken] = useState(" ");
   const [userData, setUserData] = useState({});
 
   const dispatch = useDispatch();
@@ -56,15 +60,17 @@ function UserLogin() {
           firstName: responseData.firstName,
           lastName: responseData.lastName,
           email: responseData.email,
-          token: responseData.token,
+          token: responseData.acessToken,
         };
 
         setUid(userInfo.uid);
-        setToken(userInfo.token);
+        setToken(userInfo.accessToken);
+        setResetToken(userInfo.resetToken);
         setUserData(userInfo);
 
         dispatch(updateID({ uid }));
         dispatch(updateToken({ token }));
+        dispatch(updateResetToken({ resetToken }));
         dispatch(setUserInfo({ userData }));
         setUid(" ");
         setToken(" ");
